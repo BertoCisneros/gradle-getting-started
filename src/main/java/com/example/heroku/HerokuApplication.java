@@ -56,17 +56,25 @@ public class HerokuApplication {
     return "index";
   }
 
+  public String getRandomString(){
+    String str = "";
+    byte[] array = new byte[7]; // length is bounded by 7
+    new Random().nextBytes(array);
+    str = new String(array, Charset.forName("UTF-8"));
+    return str;
+  }
+
   @RequestMapping("/db")
   String db(Map<String, Object> model) {
     try (Connection connection = dataSource.getConnection()) {
       Statement stmt = connection.createStatement();
       stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
-      stmt.executeUpdate("INSERT INTO ticksname VALUES (now(), '" + getRandomString() + "')");
+      stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
       ResultSet rs = stmt.executeQuery("SELECT tick FROM ticks");
 
       ArrayList<String> output = new ArrayList<String>();
       while (rs.next()) {
-        output.add("Read from DB: " + rs.getTimestamp("tick"));
+        output.add("Read from DB: " + rs.getTimestamp("tick") + " " + getRandomString());
       }
 
       model.put("records", output);
@@ -75,13 +83,6 @@ public class HerokuApplication {
       model.put("message", e.getMessage());
       return "error";
     }
-  }
-  public String getRandomString(){
-    String str = "";
-    byte[] array = new byte[7]; // length is bounded by 7
-    new Random().nextBytes(array);
-    str = new String(array, Charset.forName("UTF-8"));
-    return str;
   }
 
   @Bean
